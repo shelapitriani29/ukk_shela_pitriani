@@ -15,39 +15,20 @@
         <h3 class="fw-bold text-dark mb-1">Data Karyawan</h3>
         <p class="text-muted small mb-0">Kelola data penggajian karyawan</p>
     </div>
-    <a href="{{ route('karyawan.create') }}" class="btn btn-primary bg-custom-green border-0">
+    <!-- Tombol diarahkan ke route checkPeriode/pilih periode sebelum menambah karyawan -->
+    <a href="{{ route('karyawan.check-periode') }}" class="btn btn-primary bg-custom-green border-0">
         <i class="fas fa-plus"></i> Tambah Karyawan
     </a>
 </div>
 
-<!-- PERIODE FILTER DROPDOWN -->
-<div class="card border-0 shadow-sm mb-4 p-3 bg-white rounded-3">
-    <form method="GET" action="{{ route('karyawan.index') }}" id="formFilterPeriode">
-        <label class="fw-bold text-secondary small mb-2">PERIODE</label>
-        <div class="row align-items-center">
-            <div class="col-md-4">
-                <select name="periode_id" class="form-select border-secondary-subtle shadow-sm" onchange="document.getElementById('formFilterPeriode').submit()">
-                    <option value="">-- Semua Periode Gaji --</option>
-                    @foreach($periodes as $p)
-                        <option value="{{ $p->id }}" {{ (isset($periodeId) && $periodeId == $p->id) ? 'selected' : '' }}>
-                            {{ \Carbon\Carbon::parse($p->tanggal_mulai)->translatedFormat('d M Y') }} s/d {{ \Carbon\Carbon::parse($p->tanggal_selesai)->translatedFormat('d M Y') }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-        </div>
-    </form>
-</div>
-
 <!-- Form Search -->
 <form action="{{ route('karyawan.index') }}" method="GET" class="mb-4">
-    <input type="hidden" name="periode_id" value="{{ request('periode_id') }}">
     <div class="input-group shadow-sm">
         <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
         <input type="text" name="search" class="form-control border-start-0" placeholder="Cari nama atau NIK..." value="{{ $search ?? '' }}">
         <button class="btn btn-primary bg-custom-green border-0" type="submit">Cari</button>
         @if(isset($search) && $search != '')
-            <a href="{{ route('karyawan.index', ['periode_id' => request('periode_id')]) }}" class="btn btn-outline-secondary">Reset</a>
+            <a href="{{ route('karyawan.index') }}" class="btn btn-outline-secondary">Reset</a>
         @endif
     </div>
 </form>
@@ -148,7 +129,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" class="text-center py-4 text-muted">Data karyawan tidak ditemukan pada periode ini.</td>
+                        <td colspan="9" class="text-center py-4 text-muted">Belum ada data karyawan.</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -156,6 +137,54 @@
         </div>
     </div>
 </div>
+
+<!-- ================= MODAL PILIH PERIODE ================= -->
+@if(isset($showPeriodeModal) && $showPeriodeModal)
+<div class="modal fade show" id="periodeModal" tabindex="-1" aria-hidden="true" style="display: block; background: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold"><i class="fas fa-calendar-alt me-2"></i> Pilih Periode Gaji Karyawan</h5>
+                <a href="{{ route('karyawan.index') }}" class="btn-close btn-close-white"></a>
+            </div>
+            <form action="{{ route('karyawan.set-periode') }}" method="POST">
+                @csrf
+                <div class="modal-body text-start">
+                    <p class="text-muted small">Silakan tentukan Bulan dan Tahun periode gaji sebelum menambahkan data karyawan.</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Bulan</label>
+                        <select name="bulan" class="form-select" required>
+                            <option value="">-- Pilih Bulan --</option>
+                            <option value="Januari">Januari</option>
+                            <option value="Februari">Februari</option>
+                            <option value="Maret">Maret</option>
+                            <option value="April">April</option>
+                            <option value="Mei">Mei</option>
+                            <option value="Juni">Juni</option>
+                            <option value="Juli">Juli</option>
+                            <option value="Agustus">Agustus</option>
+                            <option value="September">September</option>
+                            <option value="Oktober">Oktober</option>
+                            <option value="November">November</option>
+                            <option value="Desember">Desember</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Tahun</label>
+                        <input type="number" name="tahun" class="form-control" placeholder="Contoh: 2026" value="{{ date('Y') }}" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <a href="{{ route('karyawan.index') }}" class="btn btn-secondary btn-sm">Batal</a>
+                    <button type="submit" class="btn btn-success btn-sm">Lanjutkan ke Form <i class="fas fa-arrow-right ms-1"></i></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
 
 <!-- ================= MODAL POP-UP WHATSAPP ================= -->
 <div class="modal fade" id="waModal" tabindex="-1" aria-hidden="true">
@@ -219,52 +248,54 @@
 
 <!-- ================= SCRIPT JAVASCRIPT DINAMIS ================= -->
 <script>
-    // Script Modal WhatsApp
     const waModal = document.getElementById('waModal');
-    waModal.addEventListener('show.bs.modal', function (event) {
-        let button = event.relatedTarget;
-        
-        let nama = button.getAttribute('data-nama');
-        let nik = button.getAttribute('data-nik');
-        let jabatan = button.getAttribute('data-jabatan');
-        let whatsapp = button.getAttribute('data-whatsapp');
-        let gajiPokok = button.getAttribute('data-gajipokok');
-        let lembur = button.getAttribute('data-lembur');
-        let pinjaman = button.getAttribute('data-pinjaman');
-        let gajiBersih = button.getAttribute('data-gajibersih');
+    if (waModal) {
+        waModal.addEventListener('show.bs.modal', function (event) {
+            let button = event.relatedTarget;
+            
+            let nama = button.getAttribute('data-nama');
+            let nik = button.getAttribute('data-nik');
+            let jabatan = button.getAttribute('data-jabatan');
+            let whatsapp = button.getAttribute('data-whatsapp');
+            let gajiPokok = button.getAttribute('data-gajipokok');
+            let lembur = button.getAttribute('data-lembur');
+            let pinjaman = button.getAttribute('data-pinjaman');
+            let gajiBersih = button.getAttribute('data-gajibersih');
 
-        let pesan = `Halo ${nama},\n\nBerikut adalah rincian slip gaji Anda:\n\n` +
-                    `Nama: ${nama}\n` +
-                    `NIK: ${nik}\n` +
-                    `Jabatan: ${jabatan}\n` +
-                    `----------------------------------------\n` +
-                    `Gaji Pokok: Rp ${gajiPokok}\n` +
-                    `Uang Lembur: Rp ${lembur}\n` +
-                    `Potongan Pinjaman: Rp ${pinjaman}\n` +
-                    `----------------------------------------\n` +
-                    `TOTAL GAJI BERSIH: Rp ${gajiBersih}\n\n` +
-                    `Terima kasih atas kerja keras Anda!`;
+            let pesan = `Halo ${nama},\n\nBerikut adalah rincian slip gaji Anda:\n\n` +
+                        `Nama: ${nama}\n` +
+                        `NIK: ${nik}\n` +
+                        `Jabatan: ${jabatan}\n` +
+                        `----------------------------------------\n` +
+                        `Gaji Pokok: Rp ${gajiPokok}\n` +
+                        `Uang Lembur: Rp ${lembur}\n` +
+                        `Potongan Pinjaman: Rp ${pinjaman}\n` +
+                        `----------------------------------------\n` +
+                        `TOTAL GAJI BERSIH: Rp ${gajiBersih}\n\n` +
+                        `Terima kasih atas kerja keras Anda!`;
 
-        document.getElementById('wa_nomor').value = whatsapp;
-        document.getElementById('wa_pesan').value = pesan;
+            document.getElementById('wa_nomor').value = whatsapp;
+            document.getElementById('wa_pesan').value = pesan;
 
-        let encodedPesan = encodeURIComponent(pesan);
-        let formatNoHp = whatsapp ? whatsapp.replace(/^0/, '62') : '';
-        document.getElementById('btnKirimWa').href = `https://wa.me/${formatNoHp}?text=${encodedPesan}`;
-    });
+            let encodedPesan = encodeURIComponent(pesan);
+            let formatNoHp = whatsapp ? whatsapp.replace(/^0/, '62') : '';
+            document.getElementById('btnKirimWa').href = `https://wa.me/${formatNoHp}?text=${encodedPesan}`;
+        });
+    }
 
-    // Script Modal Email (Resend)
     const emailModal = document.getElementById('emailModal');
-    emailModal.addEventListener('show.bs.modal', function (event) {
-        let button = event.relatedTarget;
-        
-        let url = button.getAttribute('data-url');
-        let nama = button.getAttribute('data-nama');
-        let email = button.getAttribute('data-email');
+    if (emailModal) {
+        emailModal.addEventListener('show.bs.modal', function (event) {
+            let button = event.relatedTarget;
+            
+            let url = button.getAttribute('data-url');
+            let nama = button.getAttribute('data-nama');
+            let email = button.getAttribute('data-email');
 
-        document.getElementById('formKirimEmail').action = url;
-        document.getElementById('email_penerima').value = email;
-        document.getElementById('info_nama_karyawan').textContent = nama;
-    });
+            document.getElementById('formKirimEmail').action = url;
+            document.getElementById('email_penerima').value = email;
+            document.getElementById('info_nama_karyawan').textContent = nama;
+        });
+    }
 </script>
 @endsection

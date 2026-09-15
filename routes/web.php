@@ -3,7 +3,6 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\PeriodeController;
 
 Route::get('/', function () {
     return redirect()->route('karyawan.index');
@@ -21,6 +20,11 @@ Route::post('/reset-password-token', [KaryawanController::class, 'updatePassword
 // Route Karyawan & Slip Gaji (Diproteksi Middleware Auth)
 Route::middleware(['auth'])->group(function () {
     Route::get('/karyawan', [KaryawanController::class, 'index'])->name('karyawan.index');
+    
+    // Route Pilihan Periode Sebelum Tambah Karyawan
+    Route::get('/karyawan/check-periode', [KaryawanController::class, 'checkPeriode'])->name('karyawan.check-periode');
+    Route::post('/karyawan/set-periode', [KaryawanController::class, 'setPeriode'])->name('karyawan.set-periode');
+
     Route::get('/karyawan/create', [KaryawanController::class, 'create'])->name('karyawan.create');
     Route::post('/karyawan', [KaryawanController::class, 'store'])->name('karyawan.store');
     Route::get('/karyawan/{id}/edit', [KaryawanController::class, 'edit'])->name('karyawan.edit');
@@ -38,7 +42,4 @@ Route::middleware(['auth'])->group(function () {
 
     // Route Kirim Email Slip Gaji via Resend API
     Route::post('/karyawan/{id}/send-email', [KaryawanController::class, 'sendEmail'])->name('karyawan.send-email');
-
-    // Route Data Periode Gaji (Otomatis mendaftarkan index, create, store, edit, update, destroy)
-    Route::resource('periode', PeriodeController::class);
 });

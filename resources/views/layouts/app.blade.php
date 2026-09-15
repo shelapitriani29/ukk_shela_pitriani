@@ -26,14 +26,8 @@
             </button>
 
             <div class="collapse navbar-collapse" id="navbarNav">
-                <!-- Menu Navigasi (Tepat di sebelah kanan logo) -->
+                <!-- Menu Navigasi Dikosongkan / Dihapus -->
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link px-3 {{ request()->routeIs('karyawan.*') ? 'active fw-bold border-bottom border-2 border-white' : '' }}" href="{{ route('karyawan.index') }}">Data Karyawan</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link px-3 {{ request()->routeIs('periode.*') ? 'active fw-bold border-bottom border-2 border-white' : '' }}" href="{{ route('periode.index') }}">Data Periode</a>
-                    </li>
                 </ul>
 
                 <!-- Profil & Logout di Kanan -->

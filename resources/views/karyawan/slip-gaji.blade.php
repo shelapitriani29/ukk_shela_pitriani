@@ -107,17 +107,11 @@
         <h3>PT. SISTEM PENGGAJIAN KARYAWAN</h3>
         <p>
             LAPORAN SLIP GAJI RESMI PERIODE 
-            @if(isset($periode) && $periode)
-                {{ strtoupper(\Carbon\Carbon::parse($periode->tanggal_mulai)->translatedFormat('d F Y')) }} 
-                S/D 
-                {{ strtoupper(\Carbon\Carbon::parse($periode->tanggal_selesai)->translatedFormat('d F Y')) }}
-            @else
-                BULAN INI
-            @endif
+            <strong>{{ strtoupper($periodeNama ?? 'BULAN INI') }}</strong>
         </p>
     </div>
 
-    <!-- Informasi Karyawan -->
+    <!-- Informasi Karyawan (Email & No. WhatsApp telah dihapus) -->
     <table class="info-table">
         <tr>
             <td width="18%"><strong>Nama</strong></td>
@@ -133,16 +127,6 @@
             <td><strong>Jabatan</strong></td>
             <td>:</td>
             <td>{{ $karyawan->jabatan }}</td>
-        </tr>
-        <tr>
-            <td><strong>Email</strong></td>
-            <td>:</td>
-            <td>{{ $karyawan->email ?? '-' }}</td>
-        </tr>
-        <tr>
-            <td><strong>No. WhatsApp</strong></td>
-            <td>:</td>
-            <td>{{ $karyawan->no_whatsapp ?? '-' }}</td>
         </tr>
     </table>
 
@@ -194,7 +178,6 @@
         <a href="{{ route('karyawan.index') }}" class="btn" style="background-color: #6c757d; margin-right: 5px;">Kembali</a>
         <button onclick="window.print()" class="btn" style="background-color: #0dcaf0; color: #000; margin-right: 5px;">Cetak / Print</button>
         
-        <!-- Diperbarui ke rute download khusus -->
         <a href="{{ route('karyawan.download-slip-gaji', $karyawan->id) }}" class="btn" style="background-color: #198754;">Download PDF</a>
     </div>
 </div>

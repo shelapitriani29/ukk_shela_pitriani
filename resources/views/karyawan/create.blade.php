@@ -31,30 +31,11 @@
 <div class="slip-container">
     <div class="slip-header">
         <h5 class="fw-bold text-dark mb-1">TAMBAH DATA KARYAWAN & SLIP GAJI</h5>
-        <p class="text-muted small mb-0">Silakan lengkapi data karyawan dan pilih periode gaji</p>
+        <p class="text-muted small mb-0">Periode Gaji Aktif: <span class="text-success fw-bold">{{ $periodeNama ?? 'Belum Dipilih' }}</span></p>
     </div>
 
     <form action="{{ route('karyawan.store') }}" method="POST" id="formSlip">
         @csrf
-
-        <!-- Pilihan Periode Gaji -->
-        <div class="row mb-3 align-items-center">
-            <div class="col-md-3 fw-semibold">PERIODE GAJI</div>
-            <div class="col-md-1 text-center">:</div>
-            <div class="col-md-8">
-                <select name="periode_id" class="form-control @error('periode_id') is-invalid @enderror" required>
-                    <option value="">-- Pilih Periode Gaji --</option>
-                    @foreach(\App\Models\Periode::all() as $p)
-                        <option value="{{ $p->id }}" {{ old('periode_id') == $p->id ? 'selected' : '' }}>
-                            {{ \Carbon\Carbon::parse($p->tanggal_mulai)->translatedFormat('d F Y') }} s/d {{ \Carbon\Carbon::parse($p->tanggal_selesai)->translatedFormat('d F Y') }} (Status: {{ $p->status }})
-                        </option>
-                    @endforeach
-                </select>
-                @error('periode_id')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
-        </div>
 
         <!-- Informasi Karyawan -->
         <div class="row mb-3 align-items-center">
